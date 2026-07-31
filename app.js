@@ -24,6 +24,7 @@
       { id: "beauty", label: "美容美睫", icon: "💅" },
       { id: "savings", label: "儲蓄", icon: "🐷" },
       { id: "stock", label: "股票", icon: "💹" },
+      { id: "household", label: "家用", icon: "👨‍👩‍👧‍👦" },
     ],
     income: [
       { id: "salary", label: "薪資", icon: "💰" },
@@ -37,7 +38,7 @@
 
   const CAT_COLORS = ["#5FBB97", "#F0AD4E", "#E8735B", "#7BA9E8", "#C08FE8",
     "#E8C15F", "#5FC7E8", "#E85F9B", "#8FBB5F", "#BB8F5F", "#5F8FE8", "#B0B0B0",
-    "#4F9DA6", "#D65FA0", "#C9A227", "#6C5CE7"];
+    "#4F9DA6", "#D65FA0", "#C9A227", "#6C5CE7", "#795548"];
 
   function loadTx() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
