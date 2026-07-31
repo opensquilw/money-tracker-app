@@ -301,10 +301,30 @@
       ? "僅套用於此月份"
       : "尚未設定此月份的預算";
 
+    // savings & stock are money set aside, not spending, so they're tracked separately
+    const savingsTotal = activeBudgets.savings || 0;
+    const stockTotal = activeBudgets.stock || 0;
+    const spendTotal = CATEGORIES.expense.reduce((sum, c) => {
+      if (c.id === "savings" || c.id === "stock") return sum;
+      return sum + (activeBudgets[c.id] || 0);
+    }, 0);
+
     const totalRow = document.getElementById("budgetTotalRow");
-    const total = CATEGORIES.expense.reduce((sum, c) => sum + (activeBudgets[c.id] || 0), 0);
-    totalRow.hidden = total <= 0;
-    document.getElementById("budgetTotalValue").textContent = currency + fmtNum(total);
+    totalRow.hidden = spendTotal <= 0;
+    document.getElementById("budgetTotalValue").textContent = currency + fmtNum(spendTotal);
+
+    const savingsRow = document.getElementById("budgetSavingsRow");
+    savingsRow.hidden = savingsTotal <= 0;
+    document.getElementById("budgetSavingsValue").textContent = currency + fmtNum(savingsTotal);
+
+    const stockRow = document.getElementById("budgetStockRow");
+    stockRow.hidden = stockTotal <= 0;
+    document.getElementById("budgetStockValue").textContent = currency + fmtNum(stockTotal);
+
+    const grandTotal = spendTotal + savingsTotal + stockTotal;
+    const grandEl = document.getElementById("budgetGrandTotal");
+    grandEl.hidden = grandTotal <= 0;
+    grandEl.textContent = `三項合計 ${currency}${fmtNum(grandTotal)}`;
 
     const wrap = document.getElementById("budgetList");
     wrap.innerHTML = "";
