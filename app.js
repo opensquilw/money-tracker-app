@@ -20,6 +20,8 @@
       { id: "pet", label: "寵物", icon: "🐾" },
       { id: "gift", label: "送禮", icon: "🎁" },
       { id: "other_e", label: "其他", icon: "📦" },
+      { id: "car", label: "座駕", icon: "🚙" },
+      { id: "beauty", label: "美容美睫", icon: "💅" },
     ],
     income: [
       { id: "salary", label: "薪資", icon: "💰" },
@@ -32,7 +34,8 @@
   };
 
   const CAT_COLORS = ["#5FBB97", "#F0AD4E", "#E8735B", "#7BA9E8", "#C08FE8",
-    "#E8C15F", "#5FC7E8", "#E85F9B", "#8FBB5F", "#BB8F5F", "#5F8FE8", "#B0B0B0"];
+    "#E8C15F", "#5FC7E8", "#E85F9B", "#8FBB5F", "#BB8F5F", "#5F8FE8", "#B0B0B0",
+    "#4F9DA6", "#D65FA0"];
 
   function loadTx() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
