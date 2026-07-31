@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>存錢罐記帳</title>
+<meta name="description" content="簡單可愛的記帳小工具">
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#5FBB97">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="存錢罐">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ===== HOME VIEW ===== -->
+  <section class="view" id="view-home">
+    <header class="topbar">
+      <button class="month-nav" id="prevMonth" aria-label="上個月">‹</button>
+      <button class="month-label" id="monthLabel">2026年7月</button>
+      <button class="month-nav" id="nextMonth" aria-label="下個月">›</button>
+    </header>
+
+    <div class="summary-card">
+      <div class="summary-item">
+        <span class="summary-dot dot-income"></span>
+        <span class="summary-text">
+          <span class="summary-label">收入</span>
+          <span class="summary-value" id="sumIncome">0</span>
+        </span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-dot dot-expense"></span>
+        <span class="summary-text">
+          <span class="summary-label">支出</span>
+          <span class="summary-value" id="sumExpense">0</span>
+        </span>
+      </div>
+      <div class="summary-item summary-balance">
+        <span class="summary-text">
+          <span class="summary-label">結餘</span>
+          <span class="summary-value" id="sumBalance">0</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="budget-progress" id="budgetProgress"></div>
+
+    <div class="tx-list" id="txList">
+      <!-- populated by JS -->
+    </div>
+    <div class="empty-state" id="emptyState" hidden>
+      <div class="empty-jar">🫙</div>
+      <p>這個月還沒有記錄喔</p>
+      <p class="empty-sub">點右下角的 ➕ 開始記帳吧</p>
+    </div>
+  </section>
+
+  <!-- ===== STATS VIEW ===== -->
+  <section class="view" id="view-stats" hidden>
+    <header class="topbar">
+      <button class="month-nav" id="prevMonthStats" aria-label="上個月">‹</button>
+      <button class="month-label" id="monthLabelStats">2026年7月</button>
+      <button class="month-nav" id="nextMonthStats" aria-label="下個月">›</button>
+    </header>
+
+    <div class="stats-toggle">
+      <button class="toggle-btn active" data-stype="expense">支出</button>
+      <button class="toggle-btn" data-stype="income">收入</button>
+    </div>
+
+    <div class="budget-summary" id="budgetSummary" hidden></div>
+
+    <div class="chart-wrap">
+      <canvas id="pieCanvas" width="240" height="240"></canvas>
+      <div class="chart-center">
+        <span id="chartTotal">0</span>
+        <span class="chart-total-label">總計</span>
+      </div>
+    </div>
+
+    <div class="cat-breakdown" id="catBreakdown"></div>
+  </section>
+
+  <!-- ===== SETTINGS VIEW ===== -->
+  <section class="view" id="view-settings" hidden>
+    <header class="topbar topbar-title">
+      <span>設定</span>
+    </header>
+    <div class="settings-list">
+      <div class="settings-row">
+        <label for="currencySelect">幣別</label>
+        <select id="currencySelect">
+          <option value="HK$">HK$ 港幣</option>
+          <option value="NT$">NT$ 新台幣</option>
+          <option value="$">$ 美金</option>
+          <option value="¥">¥ 日圓/人民幣</option>
+          <option value="€">€ 歐元</option>
+        </select>
+      </div>
+
+      <div class="settings-section-title">分類預算</div>
+      <div class="budget-month-nav">
+        <button class="month-nav" id="prevMonthBudget" aria-label="上個月">‹</button>
+        <span class="budget-month-label" id="budgetMonthLabel">2026年7月</span>
+        <button class="month-nav" id="nextMonthBudget" aria-label="下個月">›</button>
+      </div>
+      <div class="budget-hint" id="budgetHint"></div>
+      <div class="budget-list" id="budgetList"></div>
+
+      <div class="settings-section-title">資料管理</div>
+      <button class="settings-row settings-btn" id="exportBtn">
+        <span>匯出資料 (JSON)</span><span class="chev">›</span>
+      </button>
+      <label class="settings-row settings-btn" for="importInput">
+        <span>匯入資料 (JSON)</span><span class="chev">›</span>
+      </label>
+      <input type="file" id="importInput" accept="application/json" hidden>
+      <button class="settings-row settings-btn danger" id="clearBtn">
+        <span>清除所有資料</span><span class="chev">›</span>
+      </button>
+      <div class="settings-about">
+        存錢罐記帳 · 版本 1.0<br>
+        所有資料只存在你的裝置裡，不會上傳。
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ADD TRANSACTION SHEET ===== -->
+  <section class="sheet" id="addSheet" hidden>
+    <header class="sheet-header">
+      <button class="sheet-cancel" id="cancelAdd">取消</button>
+      <div class="type-toggle">
+        <button class="type-btn expense active" data-type="expense">支出</button>
+        <button class="type-btn income" data-type="income">收入</button>
+      </div>
+      <button class="sheet-save" id="saveAdd">儲存</button>
+    </header>
+
+    <div class="amount-display">
+      <span id="amountCurrency">NT$</span><span id="amountValue">0</span>
+    </div>
+
+    <div class="cat-grid" id="catGrid"></div>
+
+    <div class="add-extra">
+      <input type="text" id="noteInput" placeholder="備註（選填）" maxlength="40">
+      <input type="date" id="dateInput">
+    </div>
+
+    <div class="keypad">
+      <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+      <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+      <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+      <button data-k=".">.</button><button data-k="0">0</button><button data-k="back">⌫</button>
+    </div>
+  </section>
+
+  <!-- ===== BOTTOM NAV ===== -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-view="home">
+      <span class="nav-icon">🏠</span><span>首頁</span>
+    </button>
+    <button class="nav-btn" data-view="stats">
+      <span class="nav-icon">📊</span><span>統計</span>
+    </button>
+    <button class="nav-fab" id="openAdd" aria-label="新增記錄">＋</button>
+    <button class="nav-btn" data-view="settings">
+      <span class="nav-icon">⚙️</span><span>設定</span>
+    </button>
+  </nav>
+
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
