@@ -66,6 +66,18 @@
     return budgets[ymKey(monthDate)] || {};
   }
 
+  // For months with no budget set yet, find the most recent earlier month that
+  // had a value for this category — shown only as a grey reference placeholder,
+  // never counted toward totals unless the user actually re-enters it.
+  function findReferenceBudget(categoryId, monthDate) {
+    const currentKey = ymKey(monthDate);
+    const keys = Object.keys(budgets)
+      .filter((k) => k < currentKey && budgets[k] && budgets[k][categoryId] > 0)
+      .sort();
+    if (keys.length === 0) return null;
+    return budgets[keys[keys.length - 1]][categoryId];
+  }
+
   let transactions = loadTx();
   let currency = localStorage.getItem(CURRENCY_KEY) || "HK$";
   let budgets = loadBudgets();
@@ -296,10 +308,15 @@
     document.getElementById("budgetMonthLabel").textContent = fmtMonth(currentMonth);
 
     const activeBudgets = getEffectiveBudgets(currentMonth);
+    const hasAnyReference = CATEGORIES.expense.some((c) => !activeBudgets[c.id] && findReferenceBudget(c.id, currentMonth));
     const hintEl = document.getElementById("budgetHint");
-    hintEl.textContent = Object.keys(activeBudgets).length
-      ? "僅套用於此月份"
-      : "尚未設定此月份的預算";
+    if (Object.keys(activeBudgets).length) {
+      hintEl.textContent = "僅套用於此月份";
+    } else if (hasAnyReference) {
+      hintEl.textContent = "尚未設定此月份的預算（灰色數字為之前月份的參考金額，不會被計入）";
+    } else {
+      hintEl.textContent = "尚未設定此月份的預算";
+    }
 
     // savings & stock are money set aside, not spending, so they're tracked separately
     const savingsTotal = activeBudgets.savings || 0;
@@ -329,13 +346,17 @@
     const wrap = document.getElementById("budgetList");
     wrap.innerHTML = "";
     CATEGORIES.expense.forEach((c) => {
+      const hasOwnValue = !!activeBudgets[c.id];
+      const refValue = hasOwnValue ? null : findReferenceBudget(c.id, currentMonth);
+      const placeholderText = refValue ? String(refValue) : "0";
+
       const row = document.createElement("div");
       row.className = "budget-row";
       row.innerHTML = `
         <span class="cat-row-icon">${c.icon}</span>
         <span class="budget-cat-label">${c.label}</span>
         <span class="budget-currency">${currency}</span>
-        <input type="number" inputmode="decimal" min="0" step="1" placeholder="0" value="${activeBudgets[c.id] || ""}">
+        <input type="number" inputmode="decimal" min="0" step="1" placeholder="${placeholderText}" value="${activeBudgets[c.id] || ""}">
       `;
       const input = row.querySelector("input");
       input.addEventListener("change", () => {

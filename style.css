@@ -282,6 +282,7 @@ body {
 }
 .budget-row input[type=number]::-webkit-outer-spin-button,
 .budget-row input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.budget-row input[type=number]::placeholder { color: var(--text-soft); opacity: 1; }
 .settings-row {
   background: var(--card);
   border-radius: 14px;
